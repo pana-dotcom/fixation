@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fixation</title>
+
 <style>
 html,
 body {
@@ -15,29 +16,43 @@ body {
 }
 
 body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
 }
 
 #fixation {
+    position: absolute;
+
+    /*
+    注視点の中心を、
+    画面上端から25%の位置に配置します。
+    */
+    left: 50%;
+    top: 25%;
+    transform: translate(-50%, -50%);
+
     width: 220px;
     height: 220px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     background: gray;
     color: white;
     border-radius: 18px;
+
     font-family: Arial, sans-serif;
     font-size: 150px;
     line-height: 1;
+
     user-select: none;
     -webkit-user-select: none;
 }
 </style>
 </head>
+
 <body>
+
 <div id="fixation">✖</div>
 
 <script>
@@ -56,18 +71,29 @@ async function requestScreenWakeLock() {
         console.warn(
             "このブラウザーはScreen Wake Lock APIに対応していません。"
         );
+
         return false;
     }
 
     try {
-        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock =
+            await navigator.wakeLock.request("screen");
 
-        wakeLock.addEventListener("release", () => {
-            console.warn("画面起動ロックが解除されました。");
-            wakeLock = null;
-        });
+        wakeLock.addEventListener(
+            "release",
+            () => {
+                console.warn(
+                    "画面起動ロックが解除されました。"
+                );
 
-        console.log("画面起動ロックを取得しました。");
+                wakeLock = null;
+            }
+        );
+
+        console.log(
+            "画面起動ロックを取得しました。"
+        );
+
         return true;
 
     } catch (error) {
@@ -75,39 +101,55 @@ async function requestScreenWakeLock() {
             "画面起動ロックを取得できませんでした。",
             error
         );
+
         wakeLock = null;
+
         return false;
     }
 }
 
-/* ページ表示と同時にWake Lockを要求します。 */
-window.addEventListener("load", () => {
-    void requestScreenWakeLock();
-});
+/*
+ページ表示と同時にWake Lockを要求します。
+*/
+window.addEventListener(
+    "load",
+    () => {
+        void requestScreenWakeLock();
+    }
+);
 
 /*
 タブ切り替えや最小化によってWake Lockが解除された場合、
 同じページへ戻ったときに自動で再取得します。
 */
-document.addEventListener("visibilitychange", () => {
-    if (
-        document.visibilityState === "visible" &&
-        wakeLockEnabled &&
-        wakeLock === null
-    ) {
-        void requestScreenWakeLock();
+document.addEventListener(
+    "visibilitychange",
+    () => {
+        if (
+            document.visibilityState === "visible" &&
+            wakeLockEnabled &&
+            wakeLock === null
+        ) {
+            void requestScreenWakeLock();
+        }
     }
-});
+);
 
-/* ページを閉じるときはWake Lockを解除します。 */
-window.addEventListener("pagehide", () => {
-    wakeLockEnabled = false;
+/*
+ページを閉じるときはWake Lockを解除します。
+*/
+window.addEventListener(
+    "pagehide",
+    () => {
+        wakeLockEnabled = false;
 
-    if (wakeLock !== null) {
-        void wakeLock.release();
-        wakeLock = null;
+        if (wakeLock !== null) {
+            void wakeLock.release();
+            wakeLock = null;
+        }
     }
-});
+);
 </script>
+
 </body>
 </html>
